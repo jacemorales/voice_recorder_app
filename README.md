@@ -3,7 +3,7 @@
 
 ## 2️⃣ **Voice Recorder React Native App README**
 
-```markdown
+
 # 🎙️ Voice Recorder App
 
 A **React Native app** to record, save, and play audio on your mobile device. Ideal for voice memos, interviews, or audio testing.
