@@ -1,69 +1,68 @@
+# Voice Recorder App
 
----
+A cross-platform mobile voice recorder app built with React Native and Expo, featuring a clean, modern UI inspired by Flutter.
 
-## 2️⃣ **Voice Recorder React Native App README**
+## Features
 
+- **Record Audio**: Easily record audio from your device's microphone.
+- **Manage Recordings**: Start, stop, pause, and resume recordings.
+- **Playback**: Listen to your recordings with simple playback controls.
+- **Local Storage**: Recordings are saved locally on your device.
+- **Clean UI**: A beautiful, modern interface with light and dark mode support.
+- **Recording Management**: List, play, rename, and delete your recordings.
 
-# 🎙️ Voice Recorder App
+## Technical Stack
 
-A **React Native app** to record, save, and play audio on your mobile device. Ideal for voice memos, interviews, or audio testing.
+- **React Native (Expo)**: For cross-platform mobile development.
+- **`expo-av`**: For handling audio recording and playback.
+- **`expo-file-system`**: For saving audio files.
+- **`@react-native-async-storage/async-storage`**: For storing recording metadata.
+- **React Navigation**: For managing screens.
+- **React Hooks**: For state management.
 
----
+## Screenshots
 
-## ⚡ Features
+*(Coming soon...)*
 
-- Record audio using device microphone  
-- Play, pause, and stop recordings  
-- Save recordings locally  
-- Optional: delete or rename recordings  
-- Clean and simple user interface  
+## Installation
 
----
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/voice-recorder-app.git
+   cd voice-recorder-app
+   ```
 
-## 🛠 Tech Stack
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-- React Native  
-- `expo-av` or `react-native-audio-recorder-player`  
-- AsyncStorage / FileSystem for saving audio files  
-- iOS & Android support  
+## Usage
 
----
+1. **Start the app:**
+   ```bash
+   npx expo start
+   ```
 
-## 🚀 Getting Started
+2. **Run on your device:**
+   - Scan the QR code with the Expo Go app on your iOS or Android device.
+   - Or, run on an emulator/simulator:
+     - Press `a` for Android.
+     - Press `i` for iOS.
 
-### Prerequisites
+## Folder Structure
 
-- Node.js >= 18  
-- npm or yarn  
-- React Native CLI or Expo CLI  
-
-### Installation
-
-```bash
-# Install dependencies
-npm install
-
-# or
-yarn install
+```
+.
+├── app/                # Expo Router screen definitions
+├── assets/             # Images and fonts
+├── components/         # Reusable UI components
+├── constants/          # Theme colors and other constants
+├── hooks/              # Custom React hooks
+├── screens/            # UI screens for the app
+└── README.md
 ```
 
-### Run the App
-```bash
-#Expo:
-npx expo start
-```
+## Cross-Platform Compatibility
 
-```bash
-# iOS
-npx react-native run-ios
-
-# Android
-npx react-native run-android
-```
-
-# 🎯 Usage
-- Open the app on your device.
-- Press Record to start capturing audio.
-- Press Stop when finished.
-- Play back recordings from the list.
-- Optionally, delete or rename saved audio files.
+This app is built with Expo and is designed to work on both iOS and Android devices. All core functionalities have been implemented using cross-platform APIs to ensure a consistent experience.
