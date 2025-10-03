@@ -42,6 +42,7 @@ A **React Native app** to record, save, and play audio on your mobile device. Id
 ```bash
 # Install dependencies
 npm install
+
 # or
 yarn install
 ```
