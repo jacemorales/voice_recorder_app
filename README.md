@@ -40,10 +40,6 @@ A **React Native app** to record, save, and play audio on your mobile device. Id
 ### Installation
 
 ```bash
-# Clone the repo
-git clone https://github.com/your-username/voice-recorder-app.git
-cd voice-recorder-app
-
 # Install dependencies
 npm install
 # or
