@@ -24,21 +24,21 @@ const RecorderScreen = () => {
   useEffect(() => {
     return sound
       ? () => {
-          console.log('Unloading Sound');
-          sound.unloadAsync();
-        }
+        console.log('Unloading Sound');
+        sound.unloadAsync();
+      }
       : undefined;
   }, [sound]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (recordingStatus === 'recording') {
-        interval = setInterval(async () => {
-            const status = await recording?.getStatusAsync();
-            if (status?.isRecording) {
-                setDuration(status.durationMillis);
-            }
-        }, 1000);
+      interval = setInterval(async () => {
+        const status = await recording?.getStatusAsync();
+        if (status?.isRecording) {
+          setDuration(status.durationMillis);
+        }
+      }, 1000);
     }
     return () => clearInterval(interval);
   }, [recording, recordingStatus]);
@@ -55,7 +55,7 @@ const RecorderScreen = () => {
 
       console.log('Starting recording..');
       const { recording } = await Audio.Recording.createAsync(
-         Audio.RecordingOptionsPresets.HIGH_QUALITY
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
       setRecording(recording);
       setRecordingStatus('recording');
@@ -82,81 +82,81 @@ const RecorderScreen = () => {
   }
 
   async function saveRecording(uri: string, durationMillis: number) {
-      try {
-        const recordingDir = FileSystem.documentDirectory + 'recordings/';
-        await FileSystem.makeDirectoryAsync(recordingDir, { intermediates: true });
-        const fileName = `recording-${Date.now()}.caf`;
-        const newUri = recordingDir + fileName;
-        await FileSystem.moveAsync({
-            from: uri,
-            to: newUri,
-        });
+    try {
+      const recordingDir = FileSystem.documentDirectory + 'recordings/';
+      await FileSystem.makeDirectoryAsync(recordingDir, { intermediates: true });
+      const fileName = `recording-${Date.now()}.caf`;
+      const newUri = recordingDir + fileName;
+      await FileSystem.moveAsync({
+        from: uri,
+        to: newUri,
+      });
 
-        const recordings = JSON.parse(await AsyncStorage.getItem('recordings') || '[]');
-        const newRecording = {
-            id: `rec-${Date.now()}`,
-            name: `Recording ${recordings.length + 1}`,
-            uri: newUri,
-            duration: formatDuration(durationMillis),
-        };
-        const updatedRecordings = [...recordings, newRecording];
-        await AsyncStorage.setItem('recordings', JSON.stringify(updatedRecordings));
-        console.log('Recording saved successfully');
-      } catch (error) {
-          console.error('Failed to save recording', error);
-      }
+      const recordings = JSON.parse(await AsyncStorage.getItem('recordings') || '[]');
+      const newRecording = {
+        id: `rec-${Date.now()}`,
+        name: `Recording ${recordings.length + 1}`,
+        uri: newUri,
+        duration: formatDuration(durationMillis),
+      };
+      const updatedRecordings = [...recordings, newRecording];
+      await AsyncStorage.setItem('recordings', JSON.stringify(updatedRecordings));
+      console.log('Recording saved successfully');
+    } catch (error) {
+      console.error('Failed to save recording', error);
+    }
   }
 
   async function pauseRecording() {
     if (!recording) {
-        return;
+      return;
     }
     try {
-        await recording.pauseAsync();
-        setRecordingStatus('paused');
-        console.log('Recording paused');
+      await recording.pauseAsync();
+      setRecordingStatus('paused');
+      console.log('Recording paused');
     } catch (error) {
-        console.error('Failed to pause recording', error);
+      console.error('Failed to pause recording', error);
     }
   }
 
   async function resumeRecording() {
     if (!recording) {
-        return;
+      return;
     }
     try {
-        await recording.startAsync();
-        setRecordingStatus('recording');
-        console.log('Recording resumed');
+      await recording.startAsync();
+      setRecordingStatus('recording');
+      console.log('Recording resumed');
     } catch (error) {
-        console.error('Failed to resume recording', error);
+      console.error('Failed to resume recording', error);
     }
   }
 
   async function handlePlayback() {
     if (!lastRecordingUri) return;
     if (sound) {
-        if (isPlaying) {
-            await sound.pauseAsync();
-            setIsPlaying(false);
-        } else {
-            await sound.playAsync();
-            setIsPlaying(true);
-        }
-    } else {
-        console.log('Loading Sound');
-        const { sound: newSound } = await Audio.Sound.createAsync(
-            { uri: lastRecordingUri },
-            { shouldPlay: true }
-        );
-        setSound(newSound);
+      if (isPlaying) {
+        await sound.pauseAsync();
+        setIsPlaying(false);
+      } else {
+        await sound.playAsync();
         setIsPlaying(true);
-        newSound.setOnPlaybackStatusUpdate((status) => {
-            if ('didJustFinish' in status && status.didJustFinish) {
-                setIsPlaying(false);
-                setSound(null);
-            }
-        });
+      }
+    } else {
+      console.log('Loading Sound');
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: lastRecordingUri },
+        { shouldPlay: true }
+      );
+      setSound(newSound);
+      setIsPlaying(true);
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        if ('didJustFinish' in status && status.didJustFinish) {
+          setIsPlaying(false);
+          setSound(null);
+        }
+      });
     }
   }
 
@@ -168,26 +168,26 @@ const RecorderScreen = () => {
 
   const getRecordingButton = () => {
     switch (recordingStatus) {
-        case 'idle':
-            return <StyledButton title="Start Recording" onPress={startRecording} />;
-        case 'recording':
-            return (
-                <View style={styles.buttonGroup}>
-                    <StyledButton title="Pause" onPress={pauseRecording} style={styles.secondaryButton} />
-                    <StyledButton title="Stop" onPress={stopRecording} />
-                </View>
-            );
-        case 'paused':
-            return (
-                <View style={styles.buttonGroup}>
-                    <StyledButton title="Resume" onPress={resumeRecording} style={styles.secondaryButton} />
-                    <StyledButton title="Stop" onPress={stopRecording} />
-                </View>
-            );
-        case 'stopped':
-             return <StyledButton title="Start New Recording" onPress={startRecording} />;
-        default:
-            return null;
+      case 'idle':
+        return <StyledButton title="Start Recording" onPress={startRecording} />;
+      case 'recording':
+        return (
+          <View style={styles.buttonGroup}>
+            <StyledButton title="Pause" onPress={pauseRecording} style={styles.secondaryButton} />
+            <StyledButton title="Stop" onPress={stopRecording} />
+          </View>
+        );
+      case 'paused':
+        return (
+          <View style={styles.buttonGroup}>
+            <StyledButton title="Resume" onPress={resumeRecording} style={styles.secondaryButton} />
+            <StyledButton title="Stop" onPress={stopRecording} />
+          </View>
+        );
+      case 'stopped':
+        return <StyledButton title="Start New Recording" onPress={startRecording} />;
+      default:
+        return null;
     }
   }
 
@@ -200,8 +200,8 @@ const RecorderScreen = () => {
       </View>
       {lastRecordingUri && recordingStatus === 'stopped' && (
         <View style={[styles.playbackContainer, theme.card]}>
-            <Text style={[styles.playbackText, theme.text]}>Recording saved!</Text>
-            <StyledButton title={isPlaying ? "Pause" : "Play Last Recording"} onPress={handlePlayback} />
+          <Text style={[styles.playbackText, theme.text]}>Recording saved!</Text>
+          <StyledButton title={isPlaying ? "Pause" : "Play Last Recording"} onPress={handlePlayback} />
         </View>
       )}
     </SafeAreaView>

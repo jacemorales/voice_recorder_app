@@ -35,15 +35,15 @@ const HomeScreen = () => {
   useEffect(() => {
     return sound
       ? () => {
-          console.log('Unloading Sound');
-          sound.unloadAsync();
-        }
+        console.log('Unloading Sound');
+        sound.unloadAsync();
+      }
       : undefined;
   }, [sound]);
 
   async function playRecording(uri: string) {
     if (sound) {
-        await sound.unloadAsync();
+      await sound.unloadAsync();
     }
     console.log('Loading Sound for playback');
     const { sound: newSound } = await Audio.Sound.createAsync({ uri });
@@ -54,15 +54,15 @@ const HomeScreen = () => {
 
   async function deleteRecording(id: string) {
     try {
-        const recordingToDelete = recordings.find(rec => rec.id === id);
-        if (recordingToDelete) {
-            await FileSystem.deleteAsync(recordingToDelete.uri, { idempotent: true });
-        }
-        const updatedRecordings = recordings.filter(rec => rec.id !== id);
-        setRecordings(updatedRecordings);
-        await AsyncStorage.setItem('recordings', JSON.stringify(updatedRecordings));
+      const recordingToDelete = recordings.find(rec => rec.id === id);
+      if (recordingToDelete) {
+        await FileSystem.deleteAsync(recordingToDelete.uri, { idempotent: true });
+      }
+      const updatedRecordings = recordings.filter(rec => rec.id !== id);
+      setRecordings(updatedRecordings);
+      await AsyncStorage.setItem('recordings', JSON.stringify(updatedRecordings));
     } catch (error) {
-        console.error("Failed to delete recording", error);
+      console.error("Failed to delete recording", error);
     }
   }
 
@@ -99,13 +99,13 @@ const HomeScreen = () => {
       </View>
       <View style={styles.cardActions}>
         <TouchableOpacity onPress={() => playRecording(item.uri)} style={styles.actionButton}>
-            <Text style={{color: '#007AFF'}}>Play</Text>
+          <Text style={{ color: '#007AFF' }}>Play</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => openRenameModal(item)} style={styles.actionButton}>
-            <Text style={{color: '#ff9500'}}>Rename</Text>
+          <Text style={{ color: '#ff9500' }}>Rename</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => deleteRecording(item.id)} style={styles.actionButton}>
-            <Text style={{color: '#ff3b30'}}>Delete</Text>
+          <Text style={{ color: '#ff3b30' }}>Delete</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -119,10 +119,10 @@ const HomeScreen = () => {
         renderItem={renderItem}
         keyExtractor={item => item.id}
         style={styles.list}
-        ListEmptyComponent={<Text style={[theme.text, {textAlign: 'center'}]}>No recordings yet.</Text>}
+        ListEmptyComponent={<Text style={[theme.text, { textAlign: 'center' }]}>No recordings yet.</Text>}
       />
       <Link href="/recorder" asChild>
-        <StyledButton title="New Recording" style={{margin: 20}} />
+        <StyledButton title="New Recording" style={{ margin: 20 }} />
       </Link>
       <Modal
         animationType="slide"
@@ -134,7 +134,7 @@ const HomeScreen = () => {
           <View style={[styles.modalView, theme.card]}>
             <Text style={[styles.modalText, theme.text]}>Rename Recording</Text>
             <TextInput
-              style={[styles.input, theme.text, {borderColor: theme.subtleText.color}]}
+              style={[styles.input, theme.text, { borderColor: theme.subtleText.color }]}
               onChangeText={setNewName}
               value={newName}
             />
