@@ -10,14 +10,6 @@ A **React Native app** to record, save, and play audio on your mobile device. Id
 
 ---
 
-## 📸 Screenshots
-
-| Recording Screen | Playback Screen |
-|-----------------|----------------|
-| ![record](./assets/record.png) | ![playback](./assets/playback.png) |
-
----
-
 ## ⚡ Features
 
 - Record audio using device microphone  
