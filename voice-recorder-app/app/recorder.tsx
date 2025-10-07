@@ -1,5 +1,5 @@
 import RecorderScreen from '../screens/RecorderScreen';
 
-export default function App() {
+export default function Recorder() {
   return <RecorderScreen />;
 }
