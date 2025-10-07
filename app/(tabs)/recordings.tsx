@@ -6,7 +6,7 @@ import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import StyledButton from '../components/StyledButton';
 
-const HomeScreen = () => {
+export default function RecordingsScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
   const [recordings, setRecordings] = useState([]);
@@ -237,5 +237,3 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
 });
-
-export default HomeScreen;

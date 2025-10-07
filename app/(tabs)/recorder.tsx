@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import StyledButton from '../components/StyledButton';
 import { Waveform } from '@kaannn/react-native-waveform';
 
-const RecorderScreen = () => {
+export default function RecorderScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
 
@@ -296,5 +296,3 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   }
 });
-
-export default RecorderScreen;
