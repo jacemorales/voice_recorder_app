@@ -4,6 +4,7 @@ import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StyledButton from '../components/StyledButton';
+import { Waveform } from '@kaannn/react-native-waveform';
 
 const RecorderScreen = () => {
   const colorScheme = useColorScheme();
@@ -16,6 +17,7 @@ const RecorderScreen = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [lastRecordingUri, setLastRecordingUri] = useState<string | null>(null);
+  const [waveform, setWaveform] = useState<number[]>([]);
 
   useEffect(() => {
     requestPermission();
@@ -55,12 +57,23 @@ const RecorderScreen = () => {
 
       console.log('Starting recording..');
       const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
+        {
+          ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+          isMeteringEnabled: true,
+        }
       );
       setRecording(recording);
       setRecordingStatus('recording');
       setLastRecordingUri(null);
       setDuration(0);
+      setWaveform([]);
+
+      recording.setOnRecordingStatusUpdate(status => {
+        if (status.isRecording && status.metering) {
+          setWaveform(prev => [...prev, status.metering || 0]);
+        }
+      });
+
       console.log('Recording started');
     } catch (err) {
       console.error('Failed to start recording', err);
@@ -77,6 +90,7 @@ const RecorderScreen = () => {
     setRecording(null);
     setRecordingStatus('stopped');
     setLastRecordingUri(uri);
+    setWaveform([]);
     console.log('Recording stopped and stored at', uri);
     saveRecording(uri, duration);
   }
@@ -84,7 +98,10 @@ const RecorderScreen = () => {
   async function saveRecording(uri: string, durationMillis: number) {
     try {
       const recordingDir = FileSystem.documentDirectory + 'recordings/';
-      await FileSystem.makeDirectoryAsync(recordingDir, { intermediates: true });
+      const dirInfo = await FileSystem.getInfoAsync(recordingDir);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(recordingDir, { intermediates: true });
+      }
       const fileName = `recording-${Date.now()}.caf`;
       const newUri = recordingDir + fileName;
       await FileSystem.moveAsync({
@@ -195,6 +212,15 @@ const RecorderScreen = () => {
     <SafeAreaView style={[styles.container, theme.container]}>
       <Text style={[styles.title, theme.text]}>Voice Recorder</Text>
       <Text style={[styles.durationText, theme.subtleText]}>{formatDuration(duration)}</Text>
+      {recordingStatus === 'recording' && (
+        <Waveform
+          data={waveform}
+          style={styles.waveform}
+          waveColor={theme.text.color}
+          barWidth={5}
+          barGap={2}
+        />
+      )}
       <View style={styles.controlsContainer}>
         {getRecordingButton()}
       </View>
@@ -237,6 +263,11 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '200',
     marginBottom: 30,
+  },
+  waveform: {
+    width: '80%',
+    height: 100,
+    marginBottom: 20,
   },
   controlsContainer: {
     marginBottom: 30,
