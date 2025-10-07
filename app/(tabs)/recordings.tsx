@@ -4,15 +4,15 @@ import { Link, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
-import StyledButton from '../components/StyledButton';
 
-const HomeScreen = () => {
+export default function RecordingsScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
-  const [recordings, setRecordings] = useState([]);
+  type Recording = { id: string; name: string; uri: string; duration: string };
+  const [recordings, setRecordings] = useState<Recording[]>([]);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRecording, setSelectedRecording] = useState(null);
+  const [selectedRecording, setSelectedRecording] = useState<{ id: string; name: string; uri: string; duration: string } | null>(null);
   const [newName, setNewName] = useState('');
 
   async function loadRecordings() {
@@ -66,7 +66,7 @@ const HomeScreen = () => {
     }
   }
 
-  function openRenameModal(recording) {
+  function openRenameModal(recording: { id: string; name: string; uri: string; duration: string }) {
     setSelectedRecording(recording);
     setNewName(recording.name);
     setModalVisible(true);
@@ -91,7 +91,7 @@ const HomeScreen = () => {
     }
   }
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: Recording }) => (
     <View style={[styles.card, theme.card]}>
       <View>
         <Text style={[styles.cardTitle, theme.text]}>{item.name}</Text>
@@ -122,7 +122,7 @@ const HomeScreen = () => {
         ListEmptyComponent={<Text style={[theme.text, { textAlign: 'center' }]}>No recordings yet.</Text>}
       />
       <Link href="/recorder" asChild>
-        <StyledButton title="New Recording" style={{ margin: 20 }} />
+        <button title="New Recording" style={{ margin: 20 }}/>
       </Link>
       <Modal
         animationType="slide"
@@ -237,5 +237,3 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
 });
-
-export default HomeScreen;

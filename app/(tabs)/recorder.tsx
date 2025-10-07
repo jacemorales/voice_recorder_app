@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, useColorScheme } from 'react-native';
+import Waveform from '@kaannn/react-native-waveform';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import StyledButton from '../components/StyledButton';
-import { Waveform } from '@kaannn/react-native-waveform';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
 
-const RecorderScreen = () => {
+export default function RecorderScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
 
@@ -21,7 +20,7 @@ const RecorderScreen = () => {
 
   useEffect(() => {
     requestPermission();
-  }, []);
+  }, [requestPermission]);
 
   useEffect(() => {
     return sound
@@ -33,7 +32,7 @@ const RecorderScreen = () => {
   }, [sound]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number | null = null;
     if (recordingStatus === 'recording') {
       interval = setInterval(async () => {
         const status = await recording?.getStatusAsync();
@@ -42,35 +41,44 @@ const RecorderScreen = () => {
         }
       }, 1000);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval !== null) {
+        clearInterval(interval);
+      }
+    };
   }, [recording, recordingStatus]);
 
   async function startRecording() {
     try {
       if (permissionResponse?.status !== 'granted') {
-        await requestPermission();
+        const response = await requestPermission();
+        if (response?.status !== 'granted') {
+          console.warn('Permission to record audio was denied');
+          return;
+        }
       }
+
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
 
       console.log('Starting recording..');
-      const { recording } = await Audio.Recording.createAsync(
-        {
-          ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
-          isMeteringEnabled: true,
-        }
-      );
-      setRecording(recording);
+      const { recording: newRecording } = await Audio.Recording.createAsync({
+        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+        isMeteringEnabled: true,
+      });
+
+      setRecording(newRecording);
       setRecordingStatus('recording');
       setLastRecordingUri(null);
       setDuration(0);
       setWaveform([]);
 
-      recording.setOnRecordingStatusUpdate(status => {
-        if (status.isRecording && status.metering) {
-          setWaveform(prev => [...prev, status.metering || 0]);
+      newRecording.setOnRecordingStatusUpdate((status) => {
+        if (status.isRecording && typeof status.metering === 'number') {
+          const meterValue = status.metering; // Guaranteed number
+          setWaveform((prev) => [...prev, meterValue]);
         }
       });
 
@@ -89,21 +97,34 @@ const RecorderScreen = () => {
     const uri = recording.getURI();
     setRecording(null);
     setRecordingStatus('stopped');
-    setLastRecordingUri(uri);
     setWaveform([]);
-    console.log('Recording stopped and stored at', uri);
-    saveRecording(uri, duration);
+
+    if (uri) {
+      setLastRecordingUri(uri);
+      console.log('Recording stopped and stored at', uri);
+      saveRecording(uri, duration);
+    } else {
+      console.error('Recording URI is null');
+    }
   }
 
   async function saveRecording(uri: string, durationMillis: number) {
     try {
-      const recordingDir = FileSystem.documentDirectory + 'recordings/';
+      // @ts-expect-error documentDirectory exists at runtime but may be missing in types
+      const docDir: string | null = FileSystem.documentDirectory;
+
+      if (!docDir) {
+        throw new Error('FileSystem.documentDirectory is not available');
+      }
+
+      const recordingDir = `${docDir}recordings/`;
       const dirInfo = await FileSystem.getInfoAsync(recordingDir);
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(recordingDir, { intermediates: true });
       }
+
       const fileName = `recording-${Date.now()}.caf`;
-      const newUri = recordingDir + fileName;
+      const newUri = `${recordingDir}${fileName}`;
       await FileSystem.moveAsync({
         from: uri,
         to: newUri,
@@ -152,6 +173,7 @@ const RecorderScreen = () => {
 
   async function handlePlayback() {
     if (!lastRecordingUri) return;
+
     if (sound) {
       if (isPlaying) {
         await sound.pauseAsync();
@@ -180,8 +202,8 @@ const RecorderScreen = () => {
   const formatDuration = (millis: number) => {
     const minutes = Math.floor(millis / 60000);
     const seconds = ((millis % 60000) / 1000).toFixed(0);
-    return `${minutes}:${(parseInt(seconds) < 10 ? '0' : '')}${seconds}`;
-  }
+    return `${minutes}:${parseInt(seconds) < 10 ? '0' : ''}${seconds}`;
+  };
 
   const getRecordingButton = () => {
     switch (recordingStatus) {
@@ -206,7 +228,7 @@ const RecorderScreen = () => {
       default:
         return null;
     }
-  }
+  };
 
   return (
     <SafeAreaView style={[styles.container, theme.container]}>
@@ -221,18 +243,19 @@ const RecorderScreen = () => {
           barGap={2}
         />
       )}
-      <View style={styles.controlsContainer}>
-        {getRecordingButton()}
-      </View>
+      <View style={styles.controlsContainer}>{getRecordingButton()}</View>
       {lastRecordingUri && recordingStatus === 'stopped' && (
         <View style={[styles.playbackContainer, theme.card]}>
           <Text style={[styles.playbackText, theme.text]}>Recording saved!</Text>
-          <StyledButton title={isPlaying ? "Pause" : "Play Last Recording"} onPress={handlePlayback} />
+          <StyledButton
+            title={isPlaying ? 'Pause' : 'Play Last Recording'}
+            onPress={handlePlayback}
+          />
         </View>
       )}
     </SafeAreaView>
   );
-};
+}
 
 const lightTheme = {
   container: { backgroundColor: '#f5f5f5' },
@@ -294,7 +317,5 @@ const styles = StyleSheet.create({
   playbackText: {
     fontSize: 18,
     marginBottom: 10,
-  }
+  },
 });
-
-export default RecorderScreen;
