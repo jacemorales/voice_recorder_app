@@ -2,15 +2,15 @@ import Waveform from '@kaannn/react-native-waveform';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { SafeAreaView, Text, View } from 'react-native';
+import StyledButton from '../../components/StyledButton';
 
 export default function RecorderScreen() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
-
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
+  const [mediaLibraryPermissionResponse, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
   const [recordingStatus, setRecordingStatus] = useState<'idle' | 'recording' | 'paused' | 'stopped'>('idle');
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -20,7 +20,8 @@ export default function RecorderScreen() {
 
   useEffect(() => {
     requestPermission();
-  }, [requestPermission]);
+    requestMediaLibraryPermission();
+  }, [requestPermission, requestMediaLibraryPermission]);
 
   useEffect(() => {
     return sound
@@ -48,12 +49,27 @@ export default function RecorderScreen() {
     };
   }, [recording, recordingStatus]);
 
+  const normalizeWaveform = (db: number) => {
+    const minDb = -160;
+    const maxDb = 0;
+    const normalized = (db - minDb) / (maxDb - minDb);
+    return Math.max(0, Math.min(1, normalized));
+  };
+
   async function startRecording() {
     try {
       if (permissionResponse?.status !== 'granted') {
-        const response = await requestPermission();
-        if (response?.status !== 'granted') {
+        const audioResponse = await requestPermission();
+        if (audioResponse?.status !== 'granted') {
           console.warn('Permission to record audio was denied');
+          return;
+        }
+      }
+
+      if (mediaLibraryPermissionResponse?.status !== 'granted') {
+        const mediaResponse = await requestMediaLibraryPermission();
+        if (mediaResponse?.status !== 'granted') {
+          console.warn('Permission to access media library was denied');
           return;
         }
       }
@@ -77,8 +93,8 @@ export default function RecorderScreen() {
 
       newRecording.setOnRecordingStatusUpdate((status) => {
         if (status.isRecording && typeof status.metering === 'number') {
-          const meterValue = status.metering; // Guaranteed number
-          setWaveform((prev) => [...prev, meterValue]);
+          const normalizedValue = normalizeWaveform(status.metering);
+          setWaveform((prev) => [...prev, normalizedValue]);
         }
       });
 
@@ -110,8 +126,7 @@ export default function RecorderScreen() {
 
   async function saveRecording(uri: string, durationMillis: number) {
     try {
-      // @ts-expect-error documentDirectory exists at runtime but may be missing in types
-      const docDir: string | null = FileSystem.documentDirectory;
+      const docDir = FileSystem.documentDirectory;
 
       if (!docDir) {
         throw new Error('FileSystem.documentDirectory is not available');
@@ -211,15 +226,15 @@ export default function RecorderScreen() {
         return <StyledButton title="Start Recording" onPress={startRecording} />;
       case 'recording':
         return (
-          <View style={styles.buttonGroup}>
-            <StyledButton title="Pause" onPress={pauseRecording} style={styles.secondaryButton} />
+          <View className="flex-row justify-around w-3/5">
+            <StyledButton title="Pause" onPress={pauseRecording} className="bg-yellow-500" />
             <StyledButton title="Stop" onPress={stopRecording} />
           </View>
         );
       case 'paused':
         return (
-          <View style={styles.buttonGroup}>
-            <StyledButton title="Resume" onPress={resumeRecording} style={styles.secondaryButton} />
+          <View className="flex-row justify-around w-3/5">
+            <StyledButton title="Resume" onPress={resumeRecording} className="bg-yellow-500" />
             <StyledButton title="Stop" onPress={stopRecording} />
           </View>
         );
@@ -231,22 +246,22 @@ export default function RecorderScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, theme.container]}>
-      <Text style={[styles.title, theme.text]}>Voice Recorder</Text>
-      <Text style={[styles.durationText, theme.subtleText]}>{formatDuration(duration)}</Text>
+    <SafeAreaView className="flex-1 items-center justify-center bg-gray-100">
+      <Text className="text-4xl font-bold mb-2">Voice Recorder</Text>
+      <Text className="text-5xl font-thin mb-8">{formatDuration(duration)}</Text>
       {recordingStatus === 'recording' && (
         <Waveform
           data={waveform}
-          style={styles.waveform}
-          waveColor={theme.text.color}
+          waveColor="#333"
           barWidth={5}
           barGap={2}
+          style={{ width: '80%', height: 100, marginBottom: 20 }}
         />
       )}
-      <View style={styles.controlsContainer}>{getRecordingButton()}</View>
+      <View className="mb-8">{getRecordingButton()}</View>
       {lastRecordingUri && recordingStatus === 'stopped' && (
-        <View style={[styles.playbackContainer, theme.card]}>
-          <Text style={[styles.playbackText, theme.text]}>Recording saved!</Text>
+        <View className="mt-5 items-center p-5 rounded-lg bg-white shadow-md">
+          <Text className="text-lg mb-2">Recording saved!</Text>
           <StyledButton
             title={isPlaying ? 'Pause' : 'Play Last Recording'}
             onPress={handlePlayback}
@@ -256,66 +271,3 @@ export default function RecorderScreen() {
     </SafeAreaView>
   );
 }
-
-const lightTheme = {
-  container: { backgroundColor: '#f5f5f5' },
-  card: { backgroundColor: '#ffffff' },
-  text: { color: '#333333' },
-  subtleText: { color: '#666666' },
-};
-
-const darkTheme = {
-  container: { backgroundColor: '#121212' },
-  card: { backgroundColor: '#1e1e1e' },
-  text: { color: '#ffffff' },
-  subtleText: { color: '#aaaaaa' },
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  durationText: {
-    fontSize: 48,
-    fontWeight: '200',
-    marginBottom: 30,
-  },
-  waveform: {
-    width: '80%',
-    height: 100,
-    marginBottom: 20,
-  },
-  controlsContainer: {
-    marginBottom: 30,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '60%',
-  },
-  secondaryButton: {
-    backgroundColor: '#ffc107',
-  },
-  playbackContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-  },
-  playbackText: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-});
