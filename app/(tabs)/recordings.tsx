@@ -4,7 +4,6 @@ import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Modal, TextInput,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
-import StyledButton from '../../components/StyledButton';
 
 export default function RecordingsScreen() {
   type Recording = { id: string; name: string; uri: string; duration: string };
