@@ -1,16 +1,24 @@
-import Waveform from '@kaannn/react-native-waveform';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, Text, View } from 'react-native';
+import { Platform, SafeAreaView, Text, View } from 'react-native';
+
+let Waveform: any = null;
+if (Platform.OS !== 'web') {
+  try {
+    Waveform = require('@kaannn/react-native-waveform').default;
+  } catch (e) {
+    Waveform = null;
+  }
+}
 import StyledButton from '../../components/StyledButton';
 
 export default function RecorderScreen() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
-  const [mediaLibraryPermissionResponse, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
+  const [mediaLibraryPermissionResponse, requestMediaLibraryPermission] = MediaLibrary.usePermissions({ writeOnly: true });
   const [recordingStatus, setRecordingStatus] = useState<'idle' | 'recording' | 'paused' | 'stopped'>('idle');
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -20,7 +28,13 @@ export default function RecorderScreen() {
 
   useEffect(() => {
     requestPermission();
-    requestMediaLibraryPermission();
+    if (requestMediaLibraryPermission) {
+      try {
+        requestMediaLibraryPermission();
+      } catch (e) {
+        // Ignore initial media library permission error on web or unconfigured environments
+      }
+    }
   }, [requestPermission, requestMediaLibraryPermission]);
 
   useEffect(() => {
@@ -67,10 +81,10 @@ export default function RecorderScreen() {
       }
 
       if (mediaLibraryPermissionResponse?.status !== 'granted') {
-        const mediaResponse = await requestMediaLibraryPermission();
-        if (mediaResponse?.status !== 'granted') {
-          console.warn('Permission to access media library was denied');
-          return;
+        try {
+          await requestMediaLibraryPermission();
+        } catch (err) {
+          console.warn('Permission to access media library was rejected:', err);
         }
       }
 
@@ -223,50 +237,85 @@ export default function RecorderScreen() {
   const getRecordingButton = () => {
     switch (recordingStatus) {
       case 'idle':
-        return <StyledButton title="Start Recording" onPress={startRecording} />;
+        return <StyledButton title="🎙️ Start Recording" onPress={startRecording} className="bg-red-500 px-8 py-4" />;
       case 'recording':
         return (
-          <View className="flex-row justify-around w-3/5">
-            <StyledButton title="Pause" onPress={pauseRecording} className="bg-yellow-500" />
-            <StyledButton title="Stop" onPress={stopRecording} />
+          <View className="flex-row justify-center space-x-4">
+            <StyledButton title="⏸️ Pause" onPress={pauseRecording} className="bg-amber-500 mr-3" />
+            <StyledButton title="⏹️ Stop" onPress={stopRecording} className="bg-slate-700" />
           </View>
         );
       case 'paused':
         return (
-          <View className="flex-row justify-around w-3/5">
-            <StyledButton title="Resume" onPress={resumeRecording} className="bg-yellow-500" />
-            <StyledButton title="Stop" onPress={stopRecording} />
+          <View className="flex-row justify-center space-x-4">
+            <StyledButton title="▶️ Resume" onPress={resumeRecording} className="bg-amber-500 mr-3" />
+            <StyledButton title="⏹️ Stop" onPress={stopRecording} className="bg-slate-700" />
           </View>
         );
       case 'stopped':
-        return <StyledButton title="Start New Recording" onPress={startRecording} />;
+        return <StyledButton title="🎙️ Start New Recording" onPress={startRecording} className="bg-red-500 px-8 py-4" />;
       default:
         return null;
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center bg-gray-100">
-      <Text className="text-4xl font-bold mb-2">Voice Recorder</Text>
-      <Text className="text-5xl font-thin mb-8">{formatDuration(duration)}</Text>
-      {recordingStatus === 'recording' && (
-        <Waveform
-          data={waveform}
-          waveColor="#333"
-          barWidth={5}
-          barGap={2}
-          style={{ width: '80%', height: 100, marginBottom: 20 }}
-        />
-      )}
-      <View className="mb-8">{getRecordingButton()}</View>
-      {lastRecordingUri && recordingStatus === 'stopped' && (
-        <View className="mt-5 items-center p-5 rounded-lg bg-white shadow-md">
-          <Text className="text-lg mb-2">Recording saved!</Text>
+    <SafeAreaView className="flex-1 bg-slate-50 justify-between items-center py-10 px-6">
+      <View className="items-center mt-6">
+        <Text className="text-3xl font-extrabold text-slate-800 tracking-tight">Voice Recorder</Text>
+        <Text className="text-sm font-medium text-slate-500 mt-1">Tap record to begin audio capture</Text>
+      </View>
+
+      <View className="items-center justify-center bg-white rounded-3xl p-8 shadow-sm border border-slate-100 w-11/12 max-w-sm">
+        <Text className="text-6xl font-light text-slate-800 tracking-wider mb-6 font-mono">
+          {formatDuration(duration)}
+        </Text>
+
+        {recordingStatus === 'recording' && (
+          Waveform ? (
+            <Waveform
+              data={waveform}
+              waveColor="#ef4444"
+              barWidth={5}
+              barGap={2}
+              style={{ width: '100%', height: 80, marginBottom: 16 }}
+            />
+          ) : (
+            <View className="w-full h-20 mb-4 flex-row items-center justify-center bg-slate-50 rounded-xl p-2">
+              {waveform.length > 0 ? (
+                waveform.slice(-20).map((val, idx) => (
+                  <View
+                    key={idx}
+                    style={{
+                      width: 4,
+                      height: Math.max(8, val * 60),
+                      backgroundColor: '#ef4444',
+                      marginHorizontal: 2,
+                      borderRadius: 2,
+                    }}
+                  />
+                ))
+              ) : (
+                <Text className="text-slate-400 text-xs">Recording audio...</Text>
+              )}
+            </View>
+          )
+        )}
+
+        <View className="mt-2 w-full items-center">{getRecordingButton()}</View>
+      </View>
+
+      {lastRecordingUri && recordingStatus === 'stopped' ? (
+        <View className="w-11/12 max-w-sm items-center p-5 rounded-2xl bg-emerald-50 border border-emerald-100 mb-4 shadow-sm">
+          <Text className="text-base font-semibold text-emerald-800 mb-3">✓ Recording Saved!</Text>
           <StyledButton
-            title={isPlaying ? 'Pause' : 'Play Last Recording'}
+            title={isPlaying ? '⏸️ Pause Playback' : '▶️ Play Last Recording'}
             onPress={handlePlayback}
+            className="bg-emerald-600 px-6"
           />
         </View>
+      ) : (
+        <View className="h-16" />
       )}
     </SafeAreaView>
   );
