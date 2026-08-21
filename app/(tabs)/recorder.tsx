@@ -1,10 +1,18 @@
-import Waveform from '@kaannn/react-native-waveform';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, Text, View } from 'react-native';
+import { Platform, SafeAreaView, Text, View } from 'react-native';
+
+let Waveform: any = null;
+if (Platform.OS !== 'web') {
+  try {
+    Waveform = require('@kaannn/react-native-waveform').default;
+  } catch (e) {
+    Waveform = null;
+  }
+}
 import StyledButton from '../../components/StyledButton';
 
 export default function RecorderScreen() {
@@ -250,13 +258,21 @@ export default function RecorderScreen() {
       <Text className="text-4xl font-bold mb-2">Voice Recorder</Text>
       <Text className="text-5xl font-thin mb-8">{formatDuration(duration)}</Text>
       {recordingStatus === 'recording' && (
-        <Waveform
-          data={waveform}
-          waveColor="#333"
-          barWidth={5}
-          barGap={2}
-          style={{ width: '80%', height: 100, marginBottom: 20 }}
-        />
+        Waveform ? (
+          <Waveform
+            data={waveform}
+            waveColor="#333"
+            barWidth={5}
+            barGap={2}
+            style={{ width: '80%', height: 100, marginBottom: 20 }}
+          />
+        ) : (
+          <View style={{ width: '80%', height: 100, marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            {waveform.slice(-20).map((val, idx) => (
+              <View key={idx} style={{ width: 4, height: Math.max(10, val * 80), backgroundColor: '#333', marginHorizontal: 2, borderRadius: 2 }} />
+            ))}
+          </View>
+        )
       )}
       <View className="mb-8">{getRecordingButton()}</View>
       {lastRecordingUri && recordingStatus === 'stopped' && (
