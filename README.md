@@ -1,68 +1,65 @@
-# Voice Recorder App
+# Modern Voice Recorder App
 
-A cross-platform mobile voice recorder app built with React Native and Expo, featuring a clean, modern UI inspired by Flutter.
+A modern, cross-platform voice recorder app built with **Flutter**. It features a sleek dark-mode UI, real-time waveform visualization, search/filtering, inline audio playback, audio sharing, and local persistence.
 
 ## Features
 
-- **Record Audio**: Easily record audio from your device's microphone.
-- **Manage Recordings**: Start, stop, pause, and resume recordings.
-- **Playback**: Listen to your recordings with simple playback controls.
-- **Local Storage**: Recordings are saved locally on your device.
-- **Clean UI**: A beautiful, modern interface with light and dark mode support.
-- **Recording Management**: List, play, rename, and delete your recordings.
+- 🎙️ **Interactive Recording Screen**:
+  - Real-time animated amplitude waveform visualizer.
+  - Precision recording timer with intuitive controls (Start, Pause, Resume, Stop).
+  - Quick inline playback preview after recording.
 
-## Technical Stack
+- 📁 **Recordings Library**:
+  - Instant search filtering by title.
+  - Favorite bookmarking to save important clips.
+  - Interactive audio player bar with seek slider, play/pause, and duration indicators.
+  - Rename recordings via modal dialogs.
+  - Native file sharing capabilities.
+  - Safe deletion with confirmation dialogs.
 
-- **React Native (Expo)**: For cross-platform mobile development.
-- **`expo-av`**: For handling audio recording and playback.
-- **`expo-file-system`**: For saving audio files.
-- **`@react-native-async-storage/async-storage`**: For storing recording metadata.
-- **React Navigation**: For managing screens.
-- **React Hooks**: For state management.
+- 🎨 **Modern UX & Aesthetics**:
+  - Dark mode aesthetic with vibrant accent gradients and glassmorphism-inspired cards.
+  - Smooth animated bottom navigation bar.
 
-## Screenshots
+## Tech Stack
 
-*(Coming soon...)*
+- **Flutter & Dart**: Cross-platform framework.
+- **`record`**: Audio recording with live amplitude monitoring.
+- **`audioplayers`**: High-performance audio playback.
+- **`path_provider`**: Persistent directory storage.
+- **`shared_preferences`**: Local storage for recording metadata.
+- **`google_fonts`**: Modern typography (Inter & Outfit).
+- **`share_plus`**: Native file sharing capabilities.
 
-## Installation
+## Getting Started
 
-1. **Clone the repository:**
+### Prerequisites
+- Flutter SDK 3.x or higher installed.
+
+### Installation & Execution
+
+1. **Fetch dependencies:**
    ```bash
-   git clone https://github.com/your-username/voice-recorder-app.git
-   cd voice-recorder-app
+   flutter pub get
    ```
 
-2. **Install dependencies:**
+2. **Run the application:**
    ```bash
-   npm install
+   flutter run
+   ```
+   Or launch on web:
+   ```bash
+   flutter run -d chrome
    ```
 
-## Usage
-
-1. **Start the app:**
-   ```bash
-   npx expo start
-   ```
-
-2. **Run on your device:**
-   - Scan the QR code with the Expo Go app on your iOS or Android device.
-   - Or, run on an emulator/simulator:
-     - Press `a` for Android.
-     - Press `i` for iOS.
-
-## Folder Structure
+## Project Structure
 
 ```
-.
-├── app/                # Expo Router screen definitions
-├── assets/             # Images and fonts
-├── components/         # Reusable UI components
-├── constants/          # Theme colors and other constants
-├── hooks/              # Custom React hooks
-├── screens/            # UI screens for the app
-└── README.md
+lib/
+├── models/         # Data models (RecordingItem)
+├── services/       # File & storage service (StorageService)
+├── screens/        # UI Screens (RecorderScreen, RecordingsScreen, MainNavigationScreen)
+├── theme/          # App theme configuration (AppTheme)
+├── widgets/        # Reusable widgets (WaveformVisualizer, RecordingTile, AudioPlayerBar, RenameDialog)
+└── main.dart       # App entry point
 ```
-
-## Cross-Platform Compatibility
-
-This app is built with Expo and is designed to work on both iOS and Android devices. All core functionalities have been implemented using cross-platform APIs to ensure a consistent experience.
