@@ -1,9 +1,0 @@
-{
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.organizeImports": "explicit",
-    "typescript.reportDeprecated": "always",
-    "source.sortMembers": "explicit"
-  },
-  "github.copilot.chat.languageContext.fix.typescript.enabled": true
-}
