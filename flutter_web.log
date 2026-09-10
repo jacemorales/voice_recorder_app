@@ -1,0 +1,19 @@
+Launching lib/main.dart on Web Server in debug mode...
+Failed to bind web development server:
+SocketException: Failed to create server socket (OS Error: Address already in use, errno = 98), address = 0.0.0.0, port = 8080
+#0      _NativeSocket.bind (dart:io-patch/socket_patch.dart:1216:7)
+<asynchronous suspension>
+#1      _RawServerSocket.bind.<anonymous closure> (dart:io-patch/socket_patch.dart:2163:12)
+<asynchronous suspension>
+#2      _ServerSocket.bind.<anonymous closure> (dart:io-patch/socket_patch.dart:2483:12)
+<asynchronous suspension>
+#3      _HttpServer.bind.<anonymous closuDebug service listening on ws://127.0.0.1:34247/YWVoDWmaXYY=/ws
+A Dart VM Service on Web Server is available at: http://127.0.0.1:34247/YWVoDWmaXYY=
+The Flutter DevTools debugger and profiler on Web Server is available at: http://127.0.0.1:34247/YWVoDWmaXYY=/devtools/?uri=ws://127.0.0.1:34247/YWVoDWmaXYY=/ws
+ntWebRunner.run.<anonymous closure> (package:flutter_tools/src/isolated/resident_web_runner.dart:328:19)
+<asynchronous suspension>
+#7      asyncGuard.<anonymous closure> (package:flutter_tools/src/base/async_guard.dart:108:24)
+<asynchronous suspension>
+
+Failed to bind web development server:
+SocketException: Failed to create server socket (OS Error: Address already in use, errno = 98), address = 0.0.0.0, port = 8080
